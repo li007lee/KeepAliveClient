@@ -16,7 +16,7 @@
 #include "event2/thread.h"
 
 #define ETH_X	"ens33"
-#define MASTER_SERVER_IP "192.168.118.29"
+#define MASTER_SERVER_IP "192.168.118.56"
 #define MASTER_SERVER_PORT	(9502)
 
 #define SLAVE_SERVER_KEEP_ALAVE_PORT	(9001)

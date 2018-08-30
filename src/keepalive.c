@@ -185,6 +185,7 @@ HB_VOID recv_msg_from_keepalive_server_cb(struct bufferevent *pbevConnectToKeepA
 				{
 					cJSON *pMsg = cJSON_GetObjectItem(pRoot, "Msg");
 					TRACE_ERR("E_BOX_REGIST_ALIVE_SERVER_REPLY regist failed : [%s]\n", pMsg->valuestring);
+					cJSON_Delete(pRoot);
 					bufferevent_free(pbevConnectToKeepAliveServer);
 					pbevConnectToKeepAliveServer = NULL;
 					struct timeval tv = {RECONNET_TO_SERVER_INTERVAL, 0};
@@ -192,6 +193,7 @@ HB_VOID recv_msg_from_keepalive_server_cb(struct bufferevent *pbevConnectToKeepA
 					event_add(&evConnectToKeepAliveServer, &tv);
 					return ;
 				}
+				cJSON_Delete(pRoot);
 				//注册成功，创建定时器，定时发送心跳包
 				struct timeval tv = {HEARTBATE_TIME_VAL, 0};
 				printf("E_BOX_REGIST_ALIVE_SERVER_REPLY recv reponse :[%s]\n", cRecvBuf+sizeof(CMD_HEADER_OBJ));
@@ -208,27 +210,16 @@ HB_VOID recv_msg_from_keepalive_server_cb(struct bufferevent *pbevConnectToKeepA
 				{
 					cJSON *pMsg = cJSON_GetObjectItem(pRoot, "Msg");
 					TRACE_ERR("E_BOX_KEEP_ALIVE_REPLY recv heartbeat failed : [%s]\n", pMsg->valuestring);
-//					bufferevent_free(pbevConnectToKeepAliveServer);
-//					struct timeval tv = {RECONNET_TO_SERVER_INTERVAL, 0};
-//					event_assign(&evConnectToKeepAliveServer, glParam.pEventBase, -1, 0, connect_to_keepalive_server, NULL);
-//					event_add(&evConnectToKeepAliveServer, &tv);
+					cJSON_Delete(pRoot);
 					return;
 				}
+				cJSON_Delete(pRoot);
 				printf("E_BOX_KEEP_ALIVE_REPLY recv reponse :[%s]\n", cRecvBuf+sizeof(CMD_HEADER_OBJ));
 				bufferevent_set_timeouts(pbevConnectToKeepAliveServer, NULL, NULL);
-
-//				struct timeval tv = {HEARTBATE_TIME_VAL, 0};
-//				event_assign(glParam.evHeartBeatTimer, glParam.pEventBase, -1, EV_READ, send_heartbate, (HB_HANDLE)pbevConnectToKeepAliveServer);
-//				event_add(glParam.evHeartBeatTimer, &tv);
 			}
 			break;
 			default:
 				TRACE_DBG("recv_msg_from_keepalive_server_cb default recv reponse :[%s]\n", cRecvBuf+sizeof(CMD_HEADER_OBJ));
-//				bufferevent_free(pbevConnectToKeepAliveServer);
-//				pbevConnectToKeepAliveServer=NULL;
-//				struct timeval tv = {RECONNET_TO_SERVER_INTERVAL, 0};
-//				event_assign(&evConnectToKeepAliveServer, glParam.pEventBase, -1, 0, connect_to_keepalive_server, NULL);
-//				event_add(&evConnectToKeepAliveServer, &tv);
 				break;
 		}
 	}
@@ -291,13 +282,16 @@ static HB_VOID recv_msg_from_master_server_cb(struct bufferevent *pbevConnectToM
 			}
 			else
 			{
+				cJSON_Delete(pRoot);
 				TRACE_ERR("E_MASTER_DEV_GIVE_ME_SLAVE_REPLY failed!\n");
 				struct timeval tv = {RECONNET_TO_SERVER_INTERVAL, 0};
 				event_assign(&evConnectToMasterServer, glParam.pEventBase, -1, 0, connect_to_master_server, NULL);
 				event_add(&evConnectToMasterServer, &tv);
+				break;
 			}
 
-			event_del(&evConnectToMasterServer);
+			cJSON_Delete(pRoot);
+			printf("event_del(&evConnectToMasterServer):%d\n", event_del(&evConnectToMasterServer));
 			printf("E_MASTER_DEV_GIVE_ME_SLAVE_REPLY recv reponse :[%s]\n", cRecvBuf+sizeof(CMD_HEADER_OBJ));
 			glParam.iKeepAliveServerPort = SLAVE_SERVER_KEEP_ALAVE_PORT;
 			struct timeval tv = {0, 0};
